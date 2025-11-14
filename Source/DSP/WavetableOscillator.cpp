@@ -47,12 +47,24 @@ float WavetableOscillator::getNextSample()
 {
     float output = 0.0f;
     
+    // FM modulator
+    float fmMod = 0.0f;
+    if (fmAmount > 0.0f)
+    {
+        fmMod = std::sin(fmPhase) * fmAmount * currentFrequency;
+        fmPhase += (currentFrequency * fmRatio * 2.0f * juce::MathConstants<float>::pi) / (float)currentSampleRate;
+        if (fmPhase >= juce::MathConstants<float>::twoPi)
+            fmPhase -= juce::MathConstants<float>::twoPi;
+    }
+    
     for (int i = 0; i < unisonVoices; ++i)
     {
-        // Linear interpolation for smooth playback
-        int index0 = (int) unisonPhases[i] % wavetableSize;
+        // Linear interpolation for smooth playback with FM
+        float modulatedPhase = unisonPhases[i] + fmMod;
+        int index0 = ((int) modulatedPhase) % wavetableSize;
+        if (index0 < 0) index0 += wavetableSize;
         int index1 = (index0 + 1) % wavetableSize;
-        float frac = unisonPhases[i] - (int) unisonPhases[i];
+        float frac = modulatedPhase - std::floor(modulatedPhase);
         
         float sample = wavetable[index0] + frac * (wavetable[index1] - wavetable[index0]);
         output += sample;
@@ -65,7 +77,27 @@ float WavetableOscillator::getNextSample()
             unisonPhases[i] -= wavetableSize;
     }
     
-    return output / (float) unisonVoices; // Normalize
+    output /= (float) unisonVoices; // Normalize
+    
+    // Add sub-oscillator (one octave down)
+    if (subOscLevel > 0.0f)
+    {
+        float subSample = std::sin(subPhase);
+        output += subSample * subOscLevel;
+        
+        subPhase += phaseDelta * 0.5f; // One octave down
+        if (subPhase >= wavetableSize)
+            subPhase -= wavetableSize;
+    }
+    
+    // Add noise
+    if (noiseLevel > 0.0f)
+    {
+        float noise = (noiseGen.nextFloat() * 2.0f - 1.0f) * noiseLevel;
+        output += noise * 0.3f; // Scaled for mix
+    }
+    
+    return output;
 }
 
 void WavetableOscillator::generateWavetable (int type)
@@ -111,4 +143,24 @@ void WavetableOscillator::generateWavetable (int type)
             }
             break;
     }
+}
+
+void WavetableOscillator::setFMAmount(float amount)
+{
+    fmAmount = juce::jlimit(0.0f, 10.0f, amount);
+}
+
+void WavetableOscillator::setFMRatio(float ratio)
+{
+    fmRatio = juce::jlimit(0.5f, 8.0f, ratio);
+}
+
+void WavetableOscillator::setNoiseLevel(float level)
+{
+    noiseLevel = juce::jlimit(0.0f, 1.0f, level);
+}
+
+void WavetableOscillator::setSubOscLevel(float level)
+{
+    subOscLevel = juce::jlimit(0.0f, 1.0f, level);
 }

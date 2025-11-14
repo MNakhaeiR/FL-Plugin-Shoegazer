@@ -45,6 +45,12 @@ target_sources(ShoegazerPlugin
         Source/DSP/EffectsChain.h
         Source/DSP/WavetableOscillator.cpp
         Source/DSP/WavetableOscillator.h
+        Source/DSP/PresetManager.cpp
+        Source/DSP/PresetManager.h
+        Source/DSP/DrumSynthesizer.cpp
+        Source/DSP/DrumSynthesizer.h
+        Source/DSP/SamplePlayer.cpp
+        Source/DSP/SamplePlayer.h
         Source/UI/ModernLookAndFeel.cpp
         Source/UI/ModernLookAndFeel.h
         Source/UI/CustomComponents.cpp

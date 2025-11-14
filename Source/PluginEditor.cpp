@@ -23,6 +23,23 @@ ShoegazerAudioProcessorEditor::ShoegazerAudioProcessorEditor (ShoegazerAudioProc
     visualizer = std::make_unique<VisualizerComponent>();
     addAndMakeVisible (visualizer.get());
     
+    // Preset browser
+    presetLabel = std::make_unique<StyledLabel> ("PRESET");
+    addAndMakeVisible (presetLabel.get());
+    
+    presetCombo = std::make_unique<juce::ComboBox>();
+    auto presetNames = audioProcessor.getPresetNames();
+    for (int i = 0; i < presetNames.size(); ++i)
+        presetCombo->addItem (presetNames[i], i + 1);
+    presetCombo->onChange = [this] { 
+        audioProcessor.loadPreset (presetCombo->getSelectedId() - 1);
+    };
+    addAndMakeVisible (presetCombo.get());
+    
+    // Drum panel
+    drumPanel = std::make_unique<GradientPanel> ("DRUMS (Notes <C2)");
+    addAndMakeVisible (drumPanel.get());
+    
     // Oscillator controls
     osc1WaveCombo = std::make_unique<juce::ComboBox>();
     osc1WaveCombo->addItem ("Sine", 1);
@@ -193,7 +210,68 @@ ShoegazerAudioProcessorEditor::ShoegazerAudioProcessorEditor (ShoegazerAudioProc
     masterVolumeLabel = std::make_unique<StyledLabel> ("MASTER");
     addAndMakeVisible (masterVolumeLabel.get());
     
-    setSize (900, 600);
+    // Drum controls
+    drumKickPitchSlider = std::make_unique<AnimatedSlider>();
+    drumKickPitchSlider->setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    drumKickPitchSlider->setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 20);
+    addAndMakeVisible (drumKickPitchSlider.get());
+    sliderAttachments.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
+        audioProcessor.getAPVTS(), ShoegazerAudioProcessor::DRUM_KICK_PITCH_ID, *drumKickPitchSlider));
+    
+    drumKickDecaySlider = std::make_unique<AnimatedSlider>();
+    drumKickDecaySlider->setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    drumKickDecaySlider->setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 20);
+    addAndMakeVisible (drumKickDecaySlider.get());
+    sliderAttachments.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
+        audioProcessor.getAPVTS(), ShoegazerAudioProcessor::DRUM_KICK_DECAY_ID, *drumKickDecaySlider));
+    
+    drumSnareToneSlider = std::make_unique<AnimatedSlider>();
+    drumSnareToneSlider->setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    drumSnareToneSlider->setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 20);
+    addAndMakeVisible (drumSnareToneSlider.get());
+    sliderAttachments.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
+        audioProcessor.getAPVTS(), ShoegazerAudioProcessor::DRUM_SNARE_TONE_ID, *drumSnareToneSlider));
+    
+    drumSnareSnappySlider = std::make_unique<AnimatedSlider>();
+    drumSnareSnappySlider->setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    drumSnareSnappySlider->setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 20);
+    addAndMakeVisible (drumSnareSnappySlider.get());
+    sliderAttachments.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
+        audioProcessor.getAPVTS(), ShoegazerAudioProcessor::DRUM_SNARE_SNAPPY_ID, *drumSnareSnappySlider));
+    
+    drumHatToneSlider = std::make_unique<AnimatedSlider>();
+    drumHatToneSlider->setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    drumHatToneSlider->setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 20);
+    addAndMakeVisible (drumHatToneSlider.get());
+    sliderAttachments.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
+        audioProcessor.getAPVTS(), ShoegazerAudioProcessor::DRUM_HAT_TONE_ID, *drumHatToneSlider));
+    
+    drumHatDecaySlider = std::make_unique<AnimatedSlider>();
+    drumHatDecaySlider->setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    drumHatDecaySlider->setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 20);
+    addAndMakeVisible (drumHatDecaySlider.get());
+    sliderAttachments.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (
+        audioProcessor.getAPVTS(), ShoegazerAudioProcessor::DRUM_HAT_DECAY_ID, *drumHatDecaySlider));
+    
+    drumKickPitchLabel = std::make_unique<StyledLabel> ("KICK PITCH");
+    addAndMakeVisible (drumKickPitchLabel.get());
+    
+    drumKickDecayLabel = std::make_unique<StyledLabel> ("KICK DECAY");
+    addAndMakeVisible (drumKickDecayLabel.get());
+    
+    drumSnareToneLabel = std::make_unique<StyledLabel> ("SNARE TONE");
+    addAndMakeVisible (drumSnareToneLabel.get());
+    
+    drumSnareSnappyLabel = std::make_unique<StyledLabel> ("SNARE SNAP");
+    addAndMakeVisible (drumSnareSnappyLabel.get());
+    
+    drumHatToneLabel = std::make_unique<StyledLabel> ("HAT TONE");
+    addAndMakeVisible (drumHatToneLabel.get());
+    
+    drumHatDecayLabel = std::make_unique<StyledLabel> ("HAT DECAY");
+    addAndMakeVisible (drumHatDecayLabel.get());
+    
+    setSize (900, 700);
     startTimerHz (30);
 }
 
@@ -230,12 +308,27 @@ void ShoegazerAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont (juce::Font (14.0f));
     g.setColour (ModernLookAndFeel::getSecondaryColor());
     g.drawText ("Dreamy Synthesizer & Effects", 25, 50, 300, 20, juce::Justification::left);
+    
+    // Show current preset name
+    auto presetName = audioProcessor.getCurrentPresetName();
+    if (presetName.isNotEmpty())
+    {
+        g.setFont (juce::Font (12.0f));
+        g.setColour (ModernLookAndFeel::getSecondaryColor());
+        g.drawText ("Current: " + presetName, getWidth() - 220, 50, 200, 20, juce::Justification::right);
+    }
 }
 
 void ShoegazerAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds();
-    area.removeFromTop (80); // Title area
+    
+    // Title and preset area
+    auto titleArea = area.removeFromTop (80);
+    auto presetArea = titleArea.removeFromRight (200).reduced (10);
+    presetArea.removeFromTop (15);
+    presetLabel->setBounds (presetArea.removeFromTop (20));
+    presetCombo->setBounds (presetArea.removeFromTop (25));
     
     auto visualizerArea = area.removeFromTop (120);
     visualizer->setBounds (visualizerArea.reduced (10));
@@ -254,6 +347,10 @@ void ShoegazerAudioProcessorEditor::resized()
     auto masterArea = bottomRow.reduced (5);
     masterVolumeLabel->setBounds (masterArea.removeFromTop (20));
     masterVolumeSlider->setBounds (masterArea.removeFromBottom (140));
+    
+    // Drum panel row
+    auto drumRow = controlsArea.removeFromTop (160);
+    drumPanel->setBounds (drumRow.reduced (5));
     
     // Synth panel layout
     auto synthArea = synthPanel->getBounds().reduced (15, 40);
@@ -331,6 +428,43 @@ void ShoegazerAudioProcessorEditor::resized()
     auto delayMixArea = fxArea.removeFromLeft (90);
     delayMixLabel->setBounds (delayMixArea.removeFromBottom (20));
     delayMixSlider->setBounds (delayMixArea);
+    
+    // Drum panel layout
+    auto drumArea = drumPanel->getBounds().reduced (15, 40);
+    
+    // Kick controls
+    auto kickPitchArea = drumArea.removeFromLeft (120);
+    drumKickPitchLabel->setBounds (kickPitchArea.removeFromBottom (20));
+    drumKickPitchSlider->setBounds (kickPitchArea);
+    
+    drumArea.removeFromLeft (10);
+    auto kickDecayArea = drumArea.removeFromLeft (120);
+    drumKickDecayLabel->setBounds (kickDecayArea.removeFromBottom (20));
+    drumKickDecaySlider->setBounds (kickDecayArea);
+    
+    drumArea.removeFromLeft (30);
+    
+    // Snare controls
+    auto snareToneArea = drumArea.removeFromLeft (120);
+    drumSnareToneLabel->setBounds (snareToneArea.removeFromBottom (20));
+    drumSnareToneSlider->setBounds (snareToneArea);
+    
+    drumArea.removeFromLeft (10);
+    auto snareSnappyArea = drumArea.removeFromLeft (120);
+    drumSnareSnappyLabel->setBounds (snareSnappyArea.removeFromBottom (20));
+    drumSnareSnappySlider->setBounds (snareSnappyArea);
+    
+    drumArea.removeFromLeft (30);
+    
+    // Hat controls
+    auto hatToneArea = drumArea.removeFromLeft (120);
+    drumHatToneLabel->setBounds (hatToneArea.removeFromBottom (20));
+    drumHatToneSlider->setBounds (hatToneArea);
+    
+    drumArea.removeFromLeft (10);
+    auto hatDecayArea = drumArea.removeFromLeft (120);
+    drumHatDecayLabel->setBounds (hatDecayArea.removeFromBottom (20));
+    drumHatDecaySlider->setBounds (hatDecayArea);
 }
 
 void ShoegazerAudioProcessorEditor::timerCallback()

@@ -28,6 +28,10 @@ public:
     void setOscillatorWaveform(int oscIndex, int waveform);
     void setOscillatorDetune(float detune);
     void setOscillatorUnison(int voices);
+    void setFMAmount(float amount);
+    void setFMRatio(float ratio);
+    void setNoiseLevel(float level);
+    void setSubOscLevel(float level);
     void setFilterCutoff(float cutoff);
     void setFilterResonance(float resonance);
     void setAttack(float attack);

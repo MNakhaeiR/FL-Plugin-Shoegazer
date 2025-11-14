@@ -129,6 +129,30 @@ void ShoegazeVoice::setOscillatorUnison(int voices)
     osc2.setUnison(voices);
 }
 
+void ShoegazeVoice::setFMAmount(float amount)
+{
+    osc1.setFMAmount(amount);
+    osc2.setFMAmount(amount);
+}
+
+void ShoegazeVoice::setFMRatio(float ratio)
+{
+    osc1.setFMRatio(ratio);
+    osc2.setFMRatio(ratio);
+}
+
+void ShoegazeVoice::setNoiseLevel(float level)
+{
+    osc1.setNoiseLevel(level);
+    osc2.setNoiseLevel(level);
+}
+
+void ShoegazeVoice::setSubOscLevel(float level)
+{
+    osc1.setSubOscLevel(level);
+    osc2.setSubOscLevel(level);
+}
+
 void ShoegazeVoice::setFilterCutoff(float cutoff)
 {
     filterCutoffFreq = cutoff;

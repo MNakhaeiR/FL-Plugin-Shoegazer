@@ -18,6 +18,12 @@ public:
     void setDetune (float detuneAmount);
     void setUnison (int voiceCount);
     
+    // Advanced synthesis
+    void setFMAmount (float amount);
+    void setFMRatio (float ratio);
+    void setNoiseLevel (float level);
+    void setSubOscLevel (float level);
+    
     float getNextSample();
     
 private:
@@ -33,6 +39,19 @@ private:
     float detuneAmount = 0.0f;
     std::vector<float> unisonPhases;
     std::vector<float> unisonDetunes;
+    
+    // FM synthesis
+    float fmAmount = 0.0f;
+    float fmRatio = 2.0f;
+    float fmPhase = 0.0f;
+    
+    // Noise generator
+    juce::Random noiseGen;
+    float noiseLevel = 0.0f;
+    
+    // Sub-oscillator
+    float subOscLevel = 0.0f;
+    float subPhase = 0.0f;
     
     static constexpr int wavetableSize = 2048;
 };

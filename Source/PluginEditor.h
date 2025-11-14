@@ -31,7 +31,12 @@ private:
     std::unique_ptr<GradientPanel> filterPanel;
     std::unique_ptr<GradientPanel> envelopePanel;
     std::unique_ptr<GradientPanel> effectsPanel;
+    std::unique_ptr<GradientPanel> drumPanel;
     std::unique_ptr<VisualizerComponent> visualizer;
+    
+    // Preset browser
+    std::unique_ptr<juce::ComboBox> presetCombo;
+    std::unique_ptr<StyledLabel> presetLabel;
     
     // Oscillator controls
     std::unique_ptr<juce::ComboBox> osc1WaveCombo;
@@ -58,6 +63,21 @@ private:
     
     std::unique_ptr<StyledLabel> attackLabel;
     std::unique_ptr<StyledLabel> decayLabel;
+    
+    // Drum controls
+    std::unique_ptr<AnimatedSlider> drumKickPitchSlider;
+    std::unique_ptr<AnimatedSlider> drumKickDecaySlider;
+    std::unique_ptr<AnimatedSlider> drumSnareToneSlider;
+    std::unique_ptr<AnimatedSlider> drumSnareSnappySlider;
+    std::unique_ptr<AnimatedSlider> drumHatToneSlider;
+    std::unique_ptr<AnimatedSlider> drumHatDecaySlider;
+    
+    std::unique_ptr<StyledLabel> drumKickPitchLabel;
+    std::unique_ptr<StyledLabel> drumKickDecayLabel;
+    std::unique_ptr<StyledLabel> drumSnareToneLabel;
+    std::unique_ptr<StyledLabel> drumSnareSnappyLabel;
+    std::unique_ptr<StyledLabel> drumHatToneLabel;
+    std::unique_ptr<StyledLabel> drumHatDecayLabel;
     std::unique_ptr<StyledLabel> sustainLabel;
     std::unique_ptr<StyledLabel> releaseLabel;
     
